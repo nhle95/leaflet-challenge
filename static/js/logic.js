@@ -1,8 +1,4 @@
-// start the map
-let myMap = L.map("map", {
-    center: [37.09, -95.71],
-    zoom: 4,
-});
+
 // Use earthquake link to get the GeoJSON data.
 let earthquake_url = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson";
 
@@ -21,13 +17,19 @@ let streetandtopo = {
     Street: street,
     Topography: topo
 };
-  
 
+// start the map
+let myMap = L.map("map", {
+  center: [37.09, -95.71],
+  zoom: 4,
+  layers:street
+});
+  
 // Add to the map.
 L.control.layers(streetandtopo).addTo(myMap);
 
 //use d3 to query data
-d3.json(earthquake_url.then(function(data) {
+d3.json(earthquake_url).then(function(data) {
     //the color of the marker based on depth
     function Color(depth) {
         if (depth <= 10) return "#31906E";
@@ -41,11 +43,11 @@ d3.json(earthquake_url.then(function(data) {
       
     // get the size of marker
     function Size(magnitude) {
-        // if magnitude is 0, add marker. else, multiple by 3 the size of marker
+        // if magnitude is 0, add marker. else, multiple by 10000 the size of marker
         if (magnitude === 0) {
           return 1;
         }
-        return magnitude * 4;
+        return magnitude * 26000;
     }
 
     //start creating markers
@@ -66,22 +68,20 @@ d3.json(earthquake_url.then(function(data) {
 });
    
 // Here we create a legend control object.
-let legend = L.control({position: "bottomright"});
+  let legend = L.control({position: "bottomright"});
 
 // Then add all the details for the legend
-legend.onAdd = function(map) {
-    let div = L.DomUtil.create("div", "info legend"),
-    // legend discription
-    grades = [-10, 10, 30, 50, 70, 90];
+  legend.onAdd= function(map){
+    let div = L.DomUtil.create('div', 'info legend');
+    let limits = ['-10-10', '10-30','30-50','50-70','70-90','90+'];
+    let colors=['#31906E"',"#3EB489","#f7db11","#fdb72a", '#fca35d','#e3181c'];
     div.innerHTML += "<h4>Depth of the Earthquakes</h4>";
-    // Looping through our intervals to generate a label with a colored square for each interval.
-    for (var i = 0; i < grades.length; i++) {
-      div.innerHTML += '<i style="background:' + getColor(grades[i] + 1) + '"></i>' + grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
-      
-  
+    for (let i=0; i<limits.length; i++) {
+        div.innerHTML+= `<p style="background-color:${colors[i]}" > ${limits[i]} </p>`
+        
     }
-  return div;
-}
-  // put legend to the map.
-legend.addTo(myMap);
+    return div
+  };
+
+  legend.addTo(myMap)
 
